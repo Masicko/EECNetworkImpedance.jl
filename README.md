@@ -1,5 +1,7 @@
 # EECNetworkImpedance.jl
 
+[![DOI](https://zenodo.org/badge/620190626.svg)](https://zenodo.org/badge/latestdoi/620190626)
+
 ## Introduction
 
 The goal is to simulate an impedance measurement of an electrochemical cell of defined structure consisting of YSZ, LSM and pores using electrical elements. 
