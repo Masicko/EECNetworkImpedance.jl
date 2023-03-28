@@ -1,6 +1,6 @@
 # EECNetworkImpedance.jl
 
-
+[![DOI](https://zenodo.org/badge/620190626.svg)](https://zenodo.org/badge/latestdoi/620190626)
 
 ## Introduction
 
