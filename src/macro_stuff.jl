@@ -740,7 +740,7 @@ end
 function test_get_processed_df()
   x_axis = "T"
   other_parameters = [
-    "hole_ratio" => [0.1, 0.2, 0.3],
+    "pore_ratio" => [0.1, 0.2, 0.3],
     "LSM_ratio"
   ]
   return show_plots(x_axis, other_parameters, "snehurka/par_studies/por_study_50x50/")  

@@ -159,10 +159,9 @@ Practically useful keyword parameters are
 Advanced keyword parameters are 
 
 - `complex_type = ComplexF64` : changes the data type in which the impedance calculation is performed
-- `iterative_solver` : 
+- `iterative_solver = "auto"` : for small problems (under $15^3$ voxels) is used direct solver and iterative for larger ones.
   - if `= false` : the system of equations is solved by a direct LU solver (julian `\` operator)
   - if `= true` : the system is solved by iterative solver using Biconjugate gradient stabilized method with using Crout version of incomplete LU decomposition as a preconditioner.
-  - if `= "auto"` (default): for small problems (under $15^3$ voxels) is used direct solver and iterative for larger ones.
 - `fill_in_ratio = 12`: defines expected fill during the incomplete LU desomposition. It is a ratio of non-zero element count of aproximation of `L` matrix with respect to non-zero element count of original `A` matrix of the (sparse) linear system. Bigger `fill_in_ratio` means more realiable convergence of iterative solver but it requires more RAM space, which is the limiting factor for large systems (e.g. $10^6$ voxels and above).
 - `tau = "auto"`: a drop criterion parameter in incomplete LU process. It is a absolute (not relative) treshold and elements of size under this treshold are forgotten. If `"auto"`, an adaptive process is run to estimate a feasible value for `tau` for which the defined `fill_in_ratio` is achieved.
 

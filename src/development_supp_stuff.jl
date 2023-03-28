@@ -296,7 +296,7 @@ begin
                                  [
                                   #"porosity",# => [0.37],
                                   #"LSM_ratio",# => 0.5,
-                                  #"hole_ratio",
+                                  #"pore_ratio",
                                   #"p.R_LSM",
                                   #"T",
                                   #"configuration",
@@ -335,7 +335,7 @@ begin
                                  [
                                   #"porosity" => [0.56],
                                   #"LSM_ratio" => 0.,
-                                  #"hole_ratio",
+                                  #"pore_ratio",
                                   #"p.R_pol_LSM",
                                   "T", # => 800,
                                   #"configuration",

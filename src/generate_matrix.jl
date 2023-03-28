@@ -6,7 +6,7 @@ function generate_matrix(dimensions, porosity::Float64, LSM_ratio::Float64, pore
     while repetition_number < recursion_depth
       for i in 1:length(the_domain[:])
         if rand() <= porosity
-          the_domain[i] = i_hole
+          the_domain[i] = i_pore
         else
           if rand() <= LSM_ratio
             the_domain[i] = i_LSM
@@ -395,7 +395,7 @@ function check_pore_is_boundary(ext_domain, pos)
     return false
   end
   for dir in search_dirs(ext_domain)
-    if (ext_domain[pos .+ dir .+ ext_corr...] != i_hole) && (ext_domain[pos .+ dir .+ ext_corr...] != -1)
+    if (ext_domain[pos .+ dir .+ ext_corr...] != i_pore) && (ext_domain[pos .+ dir .+ ext_corr...] != -1)
       is_boundary = true
     end
   end
@@ -406,7 +406,7 @@ function get_indicies_of_random_neighbour(ext_domain, pos)
   neigh_list = []
   for dir in search_dirs(ext_domain)
     test_pos = pos .+ dir .+ ext_correction(ext_domain)
-    if (ext_domain[test_pos...] != i_hole) && (ext_domain[test_pos...] != -1)
+    if (ext_domain[test_pos...] != i_pore) && (ext_domain[test_pos...] != -1)
       push!(neigh_list, test_pos)
     end
   end
@@ -457,7 +457,7 @@ function shoot_pores(dims, porosity, LSM_ratio, pore_prob; recursion_depth=10)
     end
     
     
-    extended_domain[swapping_item_indices .+ ext_correction(domain)...] = i_hole
+    extended_domain[swapping_item_indices .+ ext_correction(domain)...] = i_pore
     
     if (typeof(mother_item_idx) != Nothing) && !check_pore_is_boundary(extended_domain, boundary_pore_list[mother_item_idx])
       deleteat!(boundary_pore_list, mother_item_idx)      
@@ -483,7 +483,7 @@ function shoot_pores(dims, porosity, LSM_ratio, pore_prob; recursion_depth=10)
   end
   
   for i in 1:length(extended_domain[:])
-    if (extended_domain[i] != -1) && (extended_domain[i] != i_hole)
+    if (extended_domain[i] != -1) && (extended_domain[i] != i_pore)
       if rand() < LSM_ratio
         extended_domain[i] = i_LSM
       else
