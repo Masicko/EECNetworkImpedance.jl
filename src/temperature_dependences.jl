@@ -81,7 +81,6 @@ function TI_ID2(label)
       #[0.006418221532022811, 0.005556938763855908, 0.004598968863545539, 0.00337112453237228, 0.0024249253299838836]
       # fitted to ID2
       [0.005590962194220286, 0.004773793433382758, 0.004431112664648542, 0.004234842505638187, 0.0040313014108289405, 0.0037592826559953167, 0.003452432961234127, 0.0029918256776954, 0.002696322648135628]
-
       # fitted to 2D
       #[0.005764, 0.005022, 0.00413, 0.003021, 0.002185]      
     )
@@ -90,6 +89,56 @@ function TI_ID2(label)
     return fixed_R_YSZ()
  end
 end
+
+function TI_ID2_new(label)
+  if label == "R_LSM"
+    
+    return CubicSplineInterpolation(      
+        400 : 50 : 800
+      , 
+      # fitted to 3D
+      #[0.006418221532022811, 0.005556938763855908, 0.004598968863545539, 0.00337112453237228, 0.0024249253299838836]
+      # fitted to ID2
+      [0.005643685467489298, 0.004896133757997614, 0.004492122543396562, 0.0042949178652860595, 0.004116320990863979, 0.0037828358034380683, 0.0034780731135354197, 0.003027661032018827, 0.002721083168867914]
+      # fitted to 2D
+      #[0.005764, 0.005022, 0.00413, 0.003021, 0.002185]      
+    )
+  elseif label == "R_YSZ"
+    # ok data from pure YSZ (porosity = 0.0)
+    return fixed_R_YSZ()
+ end
+end
+
+function TI_ID3(label)
+  if label == "R_LSM"
+    
+    return CubicSplineInterpolation(      
+        400 : 50 : 800
+      , 
+      # fitted to ID3
+      [0.0052240224386946015, 0.004812411856752034, 0.004475775005583696, 0.004251730069171851, 0.004208608380269227, 0.004010146960005849, 0.003893044953906655, 0.003698047205560599, 0.0035858367423405296]
+      )
+  elseif label == "R_YSZ"
+    # ok data from pure YSZ (porosity = 0.0)
+    return fixed_R_YSZ()
+ end
+end
+
+function TI_ID4(label)
+  if label == "R_LSM"
+    
+    return CubicSplineInterpolation(      
+        400 : 50 : 800
+      , 
+      # fitted to ID4
+      [0.005999792579179058, 0.005581950919708278, 0.005258921060291729, 0.005082438344387712, 0.004992620437684282, 0.0048641761432520305, 0.004753800090658466, 0.004688522158212704, 0.0046125799860434425]
+    )
+  elseif label == "R_YSZ"
+    # ok data from pure YSZ (porosity = 0.0)
+    return fixed_R_YSZ()
+ end
+end
+
 
 function TI_por_LSM(T)
   #0.12 porosity LSM 
@@ -110,3 +159,6 @@ TI_2D(label, T) = TI_2D(label)(T)
 TI_clank(label, T) = TI_clank(label)(T)
 
 TI_ID2(label, T) = TI_ID2(label)(T)
+TI_ID2_new(label, T) = TI_ID2_new(label)(T)
+TI_ID3(label, T) = TI_ID3(label)(T)
+TI_ID4(label, T) = TI_ID4(label)(T)

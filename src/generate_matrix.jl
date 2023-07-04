@@ -25,7 +25,9 @@ function generate_matrix(dimensions, porosity::Float64, LSM_ratio::Float64, pore
     println("ERROR: recursion_depth = 0 ... no trials left ... material_connectivity is not ensured")
     return -1
   else
-    return shoot_pores(dimensions, porosity, LSM_ratio, pore_prob)
+    return shoot_pores(dimensions, porosity, LSM_ratio, pore_prob,
+                        recursion_depth=recursion_depth, 
+                        check_connectivity=check_connectivity)
   end
 end
 
@@ -433,7 +435,7 @@ function get_body_list(domain)
   end  
 end
 
-function shoot_pores(dims, porosity, LSM_ratio, pore_prob; recursion_depth=10)
+function shoot_pores(dims, porosity, LSM_ratio, pore_prob; recursion_depth=10, check_connectivity=true)
   domain = Array{Integer}(undef, dims)
   boundary_pore_list = []
   body_list = get_body_list(domain)
@@ -493,7 +495,7 @@ function shoot_pores(dims, porosity, LSM_ratio, pore_prob; recursion_depth=10)
   end
   
   the_domain = get_standard_domain(extended_domain)
-  if check_material_connection(the_domain)
+  if check_material_connection(the_domain) || !check_connectivity
     return the_domain
   else
     if recursion_depth > 0
