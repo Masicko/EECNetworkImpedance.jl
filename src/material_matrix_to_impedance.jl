@@ -59,7 +59,9 @@ function material_matrix_to_impedance(
             verbose = false,
             return_only_linsys = false,
             tau = "auto",
-            fill_in_ratio = 10
+            fill_in_ratio = 10,
+            L_el_mat::Int64=i_LSM,
+            R_el_mat::Int64=i_LSM
             )
   if iterative_solver == "auto"
     if prod(size(material_matrix)) < 15^3
@@ -79,7 +81,10 @@ function material_matrix_to_impedance(
       w = 2*pi*f
 
       print("-- build lin sys:      "); 
-      @time (header, sp_input, RHS), current_measurement = material_matrix_to_lin_sys(material_matrix, params, w)
+      @time (header, sp_input, RHS), current_measurement = material_matrix_to_lin_sys(material_matrix, params, w, 
+                                                                                      L_el_mat=L_el_mat,
+                                                                                      R_el_mat=R_el_mat,
+                                                                                      )
       sp_input_values, b_eval = try_convert_system_to_real(sp_input, RHS)     
       A_eval = sparse(sp_input[1], sp_input[2], sp_input_values)
 
@@ -111,7 +116,10 @@ function material_matrix_to_impedance(
       verbose && @show f        
       w = 2*pi*f
       
-      (header, sp_input, RHS), current_measurement = material_matrix_to_lin_sys(material_matrix, params, w)
+      (header, sp_input, RHS), current_measurement = material_matrix_to_lin_sys(material_matrix, params, w, 
+                                                                                L_el_mat=L_el_mat,
+                                                                                R_el_mat=R_el_mat,
+                                                                                )
       sp_input_values, b_eval = try_convert_system_to_real(sp_input, RHS)     
       A_eval = sparse(sp_input[1], sp_input[2], sp_input_values)
 

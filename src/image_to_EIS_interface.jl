@@ -44,6 +44,10 @@ function image_to_EIS(
             #save_also_image="!input",
             
             
+            L_el_mat=i_LSM,
+            R_el_mat=i_LSM,
+            
+            
             return_specific_impedance = true,
             store_R_RC=""
             )
@@ -70,7 +74,10 @@ function image_to_EIS(
     iterative_solver = iterative_solver,
     verbose = verbose,
     tau = tau,
-    fill_in_ratio = fill_in_ratio
+    fill_in_ratio = fill_in_ratio, 
+    #
+    L_el_mat=L_el_mat,
+    R_el_mat=R_el_mat
   )
   
   if return_specific_impedance

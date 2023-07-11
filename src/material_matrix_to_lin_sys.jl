@@ -370,23 +370,23 @@ function get_auxilary_graph_matrix(m, n, s)
     return A_aux
 end
 
-function get_large_material_matrix(pre_A::Array{<:Integer, 2})
+function get_large_material_matrix(pre_A::Array{<:Integer, 2}, L_el_mat, R_el_mat)
   (m,n) = size(pre_A)
   A = Array{Int64}(undef, m+2, n+2)
   A[2:end-1, 2:end-1] = pre_A
-  A[:, 1] .= i_LSM
-  A[:, end] .= i_LSM
+  A[:, 1] .= L_el_mat
+  A[:, end] .= R_el_mat
   A[1, :] .= -1
   A[end, :] .= -1              
   return A
 end
 
-function get_large_material_matrix(pre_A::Array{<:Integer, 3})            
+function get_large_material_matrix(pre_A::Array{<:Integer, 3}, L_el_mat, R_el_mat)            
     (m,n,s) = size(pre_A)
     A = Array{Int64}(undef, m+2, n+2, s+2)
     A[2:end-1, 2:end-1, 2:end-1] = pre_A
-    A[:, 1, :] .= i_LSM
-    A[:, end, :] .= i_LSM
+    A[:, 1, :] .= L_el_mat
+    A[:, end, :] .= R_el_mat
     A[1, :, :] .= -1
     A[end, :, :] .= -1        
     A[:, :, 1] .= -1
@@ -519,13 +519,15 @@ end
 function material_matrix_to_lin_sys(
             material_A::Array{<:Integer}=[0 0 0; 1 1 1],
             p::parameters=parameters(),
-            w::Float64=1.0
+            w::Float64=1.0;
+            L_el_mat::Int64,
+            R_el_mat::Int64
     )
     
     dims = size(material_A)
     mode_3D = length(dims) == 3
     aux_A = get_auxilary_graph_matrix(dims...)
-    large_material_A = get_large_material_matrix(material_A)
+    large_material_A = get_large_material_matrix(material_A, L_el_mat, R_el_mat)
 
     Y_vector = Vector{ComplexF64}(undef, max_lin_idx(dims...))
     Y_vector .= -Inf

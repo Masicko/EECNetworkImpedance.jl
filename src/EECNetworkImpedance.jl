@@ -28,7 +28,7 @@ export TI_ID2
 export TI_2D
 
 include("physical_properties.jl")
-export matrix_to_file
+export matrix_to_file, i_LSM, i_YSZ
 
 # general part
 include("tau_estimation.jl")

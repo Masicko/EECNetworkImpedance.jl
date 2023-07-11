@@ -157,6 +157,8 @@ Practically useful keyword parameters are
   - if `= "storage.txt"` : append a line formated as <dateTtime> tab <input_file_name> tab <R_ohm> tab <R_pol> tab <C_pol> . If the function was called with a matrix (not an path to file), `"<matrix_input>"` is written instead of <input_file_name>.
   - if `= "storage.csv"` : csv extension works too
 - `return_specific_impedance = true` : returns specific impedance in *ohms x cm*. Also values of fitted *R_RC* circuit will be returned in specific units.
+- `L_el_mat = i_LSM` : defines material of the left electrode adjacent to the specified material matrix. Possible options are `i_LSM` (default) or `i_YSZ`.
+- `R_el_mat = i_LSM` : the same for the right electrode material.
 
 Advanced keyword parameters are 
 
