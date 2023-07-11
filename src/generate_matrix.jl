@@ -1,6 +1,14 @@
 
-function generate_matrix(dimensions, porosity::Float64, LSM_ratio::Float64, pore_prob::Union{Float64, Nothing}=nothing; recursion_depth=1e12, check_connectivity=true)
-  if typeof(pore_prob) == Nothing
+function generate_matrix(dimensions, porosity::Float64, LSM_ratio::Float64;
+    pore_cavitance::Union{Float64, Nothing}=nothing,
+    LSM_cavitance::Union{Float64, Nothing}=0.0,
+    recursion_depth=1e12, check_connectivity=true)
+  if typeof(pore_cavitance) == Nothing
+    if LSM_cavitance != 0.0
+      println("ERROR: LSM_cavitance != 0.0 ---> if you really want nonzero LSM_cavitance, set pore_cavitance to a float number.")
+      throw(Exception)
+      return -666
+    end
     the_domain = Array{Int16}(undef, dimensions)
     repetition_number = 1
     while repetition_number < recursion_depth
@@ -24,8 +32,10 @@ function generate_matrix(dimensions, porosity::Float64, LSM_ratio::Float64, pore
     
     println("ERROR: recursion_depth = 0 ... no trials left ... material_connectivity is not ensured")
     return -1
-  else
-    return shoot_pores(dimensions, porosity, LSM_ratio, pore_prob,
+  elseif typeof(pore_cavitance) != Nothing
+    return shoot_pores(dimensions, porosity, LSM_ratio, 
+                        pore_cavitance=pore_cavitance, 
+                        LSM_cavitance = LSM_cavitance,
                         recursion_depth=recursion_depth, 
                         check_connectivity=check_connectivity)
   end
@@ -365,7 +375,7 @@ end
 
 
 function typical_use_shoot_pores()
-  mm = EECNetworkImpedance.shoot_pores((20, 20, 20), 0.7, 0.4, 0.0)
+  mm = EECNetworkImpedance.shoot_pores((20, 20, 20), 0.7, 0.4, pore_cavitance=0.0, LSM_cavitance = 0.1)
   EECNetworkImpedance.matrix_to_file("jojojjoooojoooo.png", mm)
   println(EECNetworkImpedance.check_material_connection( 
       mm
@@ -378,7 +388,7 @@ end
 
 
 function test_shoot_pores()
-  return shoot_pores((10, 10), 0.5, 0.4, 0.1)
+  return shoot_pores((10, 10), 0.5, 0.4, pore_cavitance=0.1, LSM_cavitance = 0.2)
 end
 
 
@@ -390,28 +400,35 @@ function ext_correction(domain)
   end  
 end
 
-function check_pore_is_boundary(ext_domain, pos)
+function check_item_is_boundary(ext_domain, pos, target_i)
   is_boundary = false
   ext_corr = ext_correction(ext_domain)
   if ext_domain[pos .+ ext_corr...] == -1
     return false
   end
   for dir in search_dirs(ext_domain)
-    if (ext_domain[pos .+ dir .+ ext_corr...] != i_pore) && (ext_domain[pos .+ dir .+ ext_corr...] != -1)
+    if (ext_domain[pos .+ dir .+ ext_corr...] != target_i) && 
+        (ext_domain[pos .+ dir .+ ext_corr...] != i_pore) && 
+        (ext_domain[pos .+ dir .+ ext_corr...] != -1)
       is_boundary = true
     end
   end
   return is_boundary
 end
 
-function get_indicies_of_random_neighbour(ext_domain, pos)
+function get_indicies_of_all_neighbours(ext_domain, pos, target_i)
   neigh_list = []
   for dir in search_dirs(ext_domain)
     test_pos = pos .+ dir .+ ext_correction(ext_domain)
-    if (ext_domain[test_pos...] != i_pore) && (ext_domain[test_pos...] != -1)
+    if (ext_domain[test_pos...] != target_i) && (ext_domain[test_pos...] != -1) && (ext_domain[test_pos...] != i_pore)
       push!(neigh_list, test_pos)
     end
   end
+  return neigh_list
+end
+
+function get_indicies_of_random_neighbour(ext_domain, pos, target_i)
+  neigh_list = get_indicies_of_all_neighbours(ext_domain, pos, target_i)
   return neigh_list[Int32(rand(1:length(neigh_list)))] .- ext_correction(ext_domain)  
 end
 
@@ -435,71 +452,127 @@ function get_body_list(domain)
   end  
 end
 
-function shoot_pores(dims, porosity, LSM_ratio, pore_prob; recursion_depth=10, check_connectivity=true)
+function shoot_pores(dims, porosity, LSM_ratio; pore_cavitance, LSM_cavitance, recursion_depth=10, check_connectivity=true)
+  
   domain = Array{Integer}(undef, dims)
-  boundary_pore_list = []
   body_list = get_body_list(domain)
   #
   pix_tot = prod(dims)
-  pix_por = Int32(round(porosity*pix_tot))
-  
-  
   extended_domain = aux_domain(domain, inner_number=i_YSZ, boundary_number=-1)
   
-  
+  # pore shooting ###########################
+  pix_por = Int32(round(porosity*pix_tot))
+  boundary_pore_list = []
   for i in 1:pix_por        
     mother_item_idx = nothing
-    if (rand() <= pore_prob) && (length(boundary_pore_list) > 0)        
+    if (rand() <= pore_cavitance) && (length(boundary_pore_list) > 0)        
         mother_item_idx = rand(1:length(boundary_pore_list))        
-        swapping_item_indices = get_indicies_of_random_neighbour(extended_domain, boundary_pore_list[mother_item_idx])        
+        swapping_item_indices = get_indicies_of_random_neighbour(extended_domain, boundary_pore_list[mother_item_idx], i_pore)        
         swapping_item_idx = findall(x -> x == swapping_item_indices, body_list)[1]
-    else        
-        swapping_item_idx = rand(1:length(body_list)) 
+    else
+        swapping_item_idx = rand(1:length(body_list))
         swapping_item_indices = body_list[swapping_item_idx]
     end
     
     
     extended_domain[swapping_item_indices .+ ext_correction(domain)...] = i_pore
     
-    if (typeof(mother_item_idx) != Nothing) && !check_pore_is_boundary(extended_domain, boundary_pore_list[mother_item_idx])
+    if (typeof(mother_item_idx) != Nothing) && !check_item_is_boundary(extended_domain, boundary_pore_list[mother_item_idx], i_pore)
       deleteat!(boundary_pore_list, mother_item_idx)      
     end
     
+    # delete boundary_pore_list items which happens to be interior all of the sudden[[
     for dir in search_dirs(domain)
-      
-        if !check_pore_is_boundary(extended_domain, swapping_item_indices .+ dir)          
+        
+        if !check_item_is_boundary(extended_domain, swapping_item_indices .+ dir, i_pore)          
           search_result = findall(x -> x == swapping_item_indices .+ dir, boundary_pore_list)
-      
+          
           if length(search_result) > 0
             deleteat!(boundary_pore_list, search_result[1])
           end
         end
     end
     
-    if check_pore_is_boundary(extended_domain, swapping_item_indices)
+    if check_item_is_boundary(extended_domain, swapping_item_indices, i_pore)
       if !(swapping_item_indices in boundary_pore_list)
         push!(boundary_pore_list, swapping_item_indices)
       end
     end    
     deleteat!(body_list, swapping_item_idx)
   end
-  
-  for i in 1:length(extended_domain[:])
-    if (extended_domain[i] != -1) && (extended_domain[i] != i_pore)
-      if rand() < LSM_ratio
-        extended_domain[i] = i_LSM
+
+  #@show body_list
+  # LSM shooting ###########################
+  if LSM_cavitance > 0.0
+    pix_LSM = Int32(round((1 - porosity)*pix_tot*LSM_ratio))
+    boundary_LSM_list = []
+    for i in 1:pix_LSM     
+      
+      mother_item_idx = nothing
+      if (rand() <= LSM_cavitance) && (length(boundary_LSM_list) > 0)        
+          
+          mother_item_idx = rand(1:length(boundary_LSM_list))        
+          swapping_item_indices = get_indicies_of_random_neighbour(extended_domain, boundary_LSM_list[mother_item_idx], i_LSM)        
+          swapping_item_idx = findall(x -> x == swapping_item_indices, body_list)[1]
       else
+          swapping_item_idx = rand(1:length(body_list))
+          swapping_item_indices = body_list[swapping_item_idx]
+      end
+      
+      
+      extended_domain[swapping_item_indices .+ ext_correction(domain)...] = i_LSM
+      
+      if (typeof(mother_item_idx) != Nothing) && !check_item_is_boundary(extended_domain, boundary_LSM_list[mother_item_idx], i_LSM)
+        deleteat!(boundary_LSM_list, mother_item_idx)      
+      end
+      
+      # delete boundary_LSM_list items which happens to be interior all of the sudden[[
+      for dir in search_dirs(domain)
+          
+          if !check_item_is_boundary(extended_domain, swapping_item_indices .+ dir, i_LSM)          
+            search_result = findall(x -> x == swapping_item_indices .+ dir, boundary_LSM_list)
+            
+            if length(search_result) > 0
+              deleteat!(boundary_LSM_list, search_result[1])
+            end
+          end
+      end
+      
+      if check_item_is_boundary(extended_domain, swapping_item_indices, i_LSM)
+        if !(swapping_item_indices in boundary_LSM_list)
+          push!(boundary_LSM_list, swapping_item_indices)
+        end
+      end    
+      deleteat!(body_list, swapping_item_idx)
+    end
+
+    for i in 1:length(extended_domain[:])
+      if (extended_domain[i] != -1) && (extended_domain[i] != i_pore) && (extended_domain[i] != i_LSM)
         extended_domain[i] = i_YSZ
       end
     end
+  else
+    
+    # the rest
+    for i in 1:length(extended_domain[:])
+      if (extended_domain[i] != -1) && (extended_domain[i] != i_pore)
+        if rand() < LSM_ratio
+          extended_domain[i] = i_LSM
+        else
+          extended_domain[i] = i_YSZ
+        end
+      end
+    end
   end
-  
+
+
+
   the_domain = get_standard_domain(extended_domain)
   if check_material_connection(the_domain) || !check_connectivity
     return the_domain
   else
     if recursion_depth > 0
-      return shoot_pores(dims, porosity, LSM_ratio, pore_prob, recursion_depth=recursion_depth-1)
+      return shoot_pores(dims, porosity, LSM_ratio, pore_cavitance=pore_cavitance, LSM_cavitance=LSM_cavitance, recursion_depth=recursion_depth-1)
     else
       println("ERROR: recursion_depth = 0 ... no trials left ... material_connectivity is not ensured")
       return -1

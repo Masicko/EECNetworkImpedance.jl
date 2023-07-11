@@ -211,6 +211,21 @@ The simplest example is a homogenous domain of `dimensions = (m, n)`, where *m* 
 homogenous_matrix = generate_matrix(dimensions, porosity, LSM_ratio)
 ```
 
+### Additional stuctural parameters
+More specific structure can be defined using parameters which governs a tendency to group pixels together. Namely:
+
+- `pore_cavitance = Nothing`- a probability that next pore pixel will spawn next to already existing pore (if possible)
+  - if `= Nothing`, generating of random structure is fast because no "grouping algoritm" is involved.
+  - if `= 0.0`, generating of random structure is slower because "grouping algoritm" is invoked
+- `LSM_cavitance = 0.0`- a probability that next LSM pixel will spawn next to already existing LSM pixel (if possible). This keyword argument is working only if pore_cavitance keyword parameter is set to a real number (i.e. if `pore_cavitance = Nothing`, then parameter `LSM_cavitance` has no effect to generated structure).
+
+```julialang
+pseudo_homogenous_matrix = generate_matrix(dimensions, porosity, LSM_ratio, 
+                                            pore_cavitance = 0.4,
+                                            LSM_cavitance = 0.2
+                          )
+```
+
 ### Structure using multiple submatrices
 For more complicated domains composed of several different homogenous subdomains, there is a possibility to construct appropriate matrix. Suppose we want to construct *m* x *n* matrix consisting of 2 different submatrices. First, a list of submatrices must be created such that one submatrix is represented by its *location* (left upper corner and right lower corner) in the resulting matrix and *porosity* and *LSM_ratio*. 
 
@@ -271,7 +286,7 @@ matrix_to_file("images/three_column_domain.png", three_column_matrix)
 
 ## Acknowledgement
 
-Authors acknowledge financial support from the  Technology Agency of the Czech Republic under project no. TK04030143.
+Authors acknowledge financial support from the Technology Agency of the Czech Republic under project no. TK04030143.
 
 
 
