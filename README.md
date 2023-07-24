@@ -288,7 +288,7 @@ matrix_to_file("images/three_column_domain.png", three_column_matrix)
 
 ## Acknowledgement
 
-Authors acknowledge financial support from the Technology Agency of the Czech Republic under project no. TK04030143.
+This work was supported by the German Research Foundation, DFG project no. FU 316/14-1, and by the Czech Science Foundation, GAČR project no. 19-14244J.
 
 
 
