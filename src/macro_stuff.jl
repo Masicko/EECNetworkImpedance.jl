@@ -411,8 +411,18 @@ function par_study(
     else
       verbose = false
     end
-    @show verbose
 
+    if haskey(local_par_study_prms, "L_el_mat")
+      L_el_mat = local_par_study_prms["L_el_mat"]
+    else
+      L_el_mat = i_LSM
+    end
+
+    if haskey(local_par_study_prms, "R_el_mat")
+      R_el_mat = local_par_study_prms["R_el_mat"]
+    else
+      R_el_mat = i_LSM
+    end
 
     etime = @elapsed R, R_pol, C_pol = convert.(Float64,
       image_to_EIS(
@@ -425,6 +435,8 @@ function par_study(
                     return_R_RC=true, 
                     TPE_warning=false,                      
                     pyplot=false,
+                    L_el_mat=L_el_mat,
+                    R_el_mat=R_el_mat,
       )
     )
     
