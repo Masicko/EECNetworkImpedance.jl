@@ -102,7 +102,7 @@ begin
   end
 
   ################### 
-  low_upp_bounds_pore_prob = [
+  low_upp_bounds_pore_cavitance = [
     0.0   0.2   # ID1
     0.0   0.2   # ID2
     0.0   0.2   # ID3
@@ -143,16 +143,16 @@ begin
   function get_all_cavities(ID_list, prestring="DAN_DAN_2D_srovnani_id_", add_prms=[])
            
     x_data = []
-    pore_prob_range = 0.0 : 0.05 : 1.0
-    res = Array{Any}(undef, maximum(ID_list)+1, length(pore_prob_range) + 1)
+    pore_cavitance_range = 0.0 : 0.05 : 1.0
+    res = Array{Any}(undef, maximum(ID_list)+1, length(pore_cavitance_range) + 1)
     res .= missing
-    res[end, 1:end-1] = pore_prob_range
-    res[end, end] = "<- pore_prob (conductivity)\\opt ^"
+    res[end, 1:end-1] = pore_cavitance_range
+    res[end, end] = "<- pore_cavitance (conductivity)\\opt ^"
     #return res
     
     for row in ID_list       
       gdf = EECNetworkImpedance.show_plots(                      
-                        "pore_prob",
+                        "pore_cavitance",
                         ["T"]
                         ,
                         prestring*"$(row)/",
@@ -160,26 +160,26 @@ begin
                         plot_bool=false
                       );
       
-      x_data = gdf[1][:, :pore_prob]
+      x_data = gdf[1][:, :pore_cavitance]
       y_data = gdf[1][:, :R_mean]
-      target_pore_prob = find_x_from_y(1/data_conductivity_all[row, 2], x_data, y_data)
+      target_pore_cavitance = find_x_from_y(1/data_conductivity_all[row, 2], x_data, y_data)
       
-      pore_prob_range = 0.0 : 0.05 : 1.0
-      output_dict = Dict{Float64, Union{Missing, Float64}}([loc_pore_prob => missing for loc_pore_prob in pore_prob_range])
+      pore_cavitance_range = 0.0 : 0.05 : 1.0
+      output_dict = Dict{Float64, Union{Missing, Float64}}([loc_pore_cavitance => missing for loc_pore_cavitance in pore_cavitance_range])
       
-      names_list = ["pore_prob = $(n)" for n in pore_prob_range]
-      push!(names_list, "opt_pore_prob")
+      names_list = ["pore_cavitance = $(n)" for n in pore_cavitance_range]
+      push!(names_list, "opt_pore_cavitance")
      
       for i in 1:length(x_data)
         output_dict[x_data[i]] = y_data[i]
       end
         
       res_array = []
-      for loc_pore_prob in pore_prob_range
-        push!(res_array, 1/output_dict[loc_pore_prob])
+      for loc_pore_cavitance in pore_cavitance_range
+        push!(res_array, 1/output_dict[loc_pore_cavitance])
       end
-      push!(res_array, target_pore_prob)
-      #@show names_list x_data y_data target_pore_prob 1/data_conductivity_all[row, 2] res_array
+      push!(res_array, target_pore_cavitance)
+      #@show names_list x_data y_data target_pore_cavitance 1/data_conductivity_all[row, 2] res_array
     
       res[row, :] = res_array     
     end

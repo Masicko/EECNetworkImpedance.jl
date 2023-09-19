@@ -256,7 +256,8 @@ function pore_shooting_matrix(par_study_prms::Dict)
             par_study_prms["dimensions"],
             par_study_prms["porosity"],
             par_study_prms["LSM_ratio"],
-            par_study_prms["pore_prob"]
+            pore_cavitance=par_study_prms["pore_cavitance"],
+            LSM_cavitance=par_study_prms["LSM_cavitance"]
   )
 end
 
