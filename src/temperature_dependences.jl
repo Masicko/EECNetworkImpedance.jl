@@ -14,6 +14,19 @@ function fixed_R_YSZ()
     )
 end
 
+function higher_R_YSZ()
+  return CubicSplineInterpolation(
+      400 : 50 : 800
+      ,
+      [6488.618962340055, 1798.0760586172794, 688.6075391507817, 288.31596662108393, 138.5334927576768, 73.65717446659315, 42.83950155040441, 27.16694634585147, 18.47673167901793]
+  )
+end
+
+function TI_YSZ_hi(T)
+  higher_R_YSZ()(T)
+end
+
+
 # temperature data are in degrees of Celsia
 # resistanace data are in Ohm/cm
 # ... a bit different interpretation of porosity

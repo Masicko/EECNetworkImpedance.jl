@@ -26,6 +26,7 @@ include("temperature_dependences.jl")
 export TI
 export TI_ID2
 export TI_2D
+export TI_YSZ_hi
 
 include("physical_properties.jl")
 export matrix_to_file, i_LSM, i_YSZ
