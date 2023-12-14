@@ -4,6 +4,8 @@ begin
   using CSV
   using Optim
   using Interpolations
+
+  using DelimitedFiles
                                                                                                           #20kN     # commercial?
   data_ID        = [1,      2,      3,      4,      5,      6,      7,      8,      9,      10,      11,      12,     13    ]; 
   data_LSM_ratio = [1.0,    0.9,    0.8,    0.7,    0.6,    0.5,    0.4,    0.3,    0.2,    0.1,     0.0,     0.5,    0.5   ];
@@ -140,50 +142,89 @@ begin
     end
   end
 
-  function get_all_cavities(ID_list, prestring="DAN_DAN_2D_srovnani_id_", add_prms=[])
-           
+  function get_all_cavities(ID_list, prestring="DAN_DAN_2D_srovnani_id_", add_prms=[]; T=750)
+
     x_data = []
-    pore_cavitance_range = 0.0 : 0.05 : 1.0
-    res = Array{Any}(undef, maximum(ID_list)+1, length(pore_cavitance_range) + 1)
+    pore_prob_range = 0.0 : 0.05 : 1.0
+    res = Array{Any}(undef, maximum(ID_list)+1, length(pore_prob_range) + 1)
     res .= missing
-    res[end, 1:end-1] = pore_cavitance_range
-    res[end, end] = "<- pore_cavitance (conductivity)\\opt ^"
+    res[end, 1:end-1] = pore_prob_range
+    res[end, end] = "<- pore_prob (conductivity)\\opt ^"
     #return res
-    
-    for row in ID_list       
-      gdf = EECNetworkImpedance.show_plots(                      
+
+    for row in ID_list
+      gdf = EECNetworkImpedance.show_plots(
                         "pore_cavitance",
-                        ["T"]
+                        ["T"=>T]
                         ,
                         prestring*"$(row)/",
                         throw_exception=false,
                         plot_bool=false
                       );
-      
+
       x_data = gdf[1][:, :pore_cavitance]
       y_data = gdf[1][:, :R_mean]
-      target_pore_cavitance = find_x_from_y(1/data_conductivity_all[row, 2], x_data, y_data)
-      
-      pore_cavitance_range = 0.0 : 0.05 : 1.0
-      output_dict = Dict{Float64, Union{Missing, Float64}}([loc_pore_cavitance => missing for loc_pore_cavitance in pore_cavitance_range])
-      
-      names_list = ["pore_cavitance = $(n)" for n in pore_cavitance_range]
-      push!(names_list, "opt_pore_cavitance")
-     
+
+      target_T_idx = findall(x -> x == T, T_all)[1]
+      target_pore_prob = find_x_from_y(1/data_conductivity_all[row, target_T_idx], x_data, y_data)
+
+      pore_prob_range = 0.0 : 0.05 : 1.0
+      output_dict = Dict{Float64, Union{Missing, Float64}}([loc_pore_prob => missing for loc_pore_prob in pore_prob_range])
+
+      names_list = ["pore_cavitance = $(n)" for n in pore_prob_range]
+      push!(names_list, "opt_pore_prob")
+
       for i in 1:length(x_data)
         output_dict[x_data[i]] = y_data[i]
       end
-        
+
       res_array = []
-      for loc_pore_cavitance in pore_cavitance_range
-        push!(res_array, 1/output_dict[loc_pore_cavitance])
+      for loc_pore_prob in pore_prob_range
+        push!(res_array, 1/output_dict[loc_pore_prob])
       end
-      push!(res_array, target_pore_cavitance)
-      #@show names_list x_data y_data target_pore_cavitance 1/data_conductivity_all[row, 2] res_array
-    
-      res[row, :] = res_array     
+      push!(res_array, target_pore_prob)
+      #@show names_list x_data y_data target_pore_prob 1/data_conductivity_all[row, 2] res_array
+
+      res[row, :] = res_array
     end
     return res
+  end
+
+
+  function get_optimal_cavity_study()
+    res_Ts = []
+    Ts = [750, 650, 550, 450]
+
+    for T in Ts
+        push!(res_Ts,
+            get_all_cavities([1,2,3,4,5,6,7,8,9,10,11], "DAN_iLU__cavity_fifth_YSZ_HI_id_", T=T)
+        )
+    end
+    res_Ts_st = []
+    Ts = [750, 650, 550, 450]
+
+    for T in Ts
+        push!(res_Ts_st,
+            get_all_cavities([1,2,3,4,5,6,7,8,9,10,11], "DAN_iLU__cavity_fourth_id_", T=T)
+        )
+    end
+
+    filler = reshape([" " for i in 1:22], (1,22))
+
+    R_YSZ_row = copy(filler); R_YSZ_row[1] = "R_YSZ_standard"
+    R_YSZ_row[3] = "temperatures:"
+    R_YSZ_row[4:7] .= string.([750, 650, 550, 450])
+    #
+    R_YSZ_hi_row = copy(filler); R_YSZ_hi_row[1] = "R_YSZ_higher"
+    R_YSZ_hi_row[3] = "temperatures:"
+    R_YSZ_hi_row[4:7] .= string.([750, 650, 550, 450])
+    
+    output = [R_YSZ_row; res_Ts_st...; filler; filler; R_YSZ_hi_row; res_Ts...]
+    return res_Ts_st, res_Ts, output
+  end
+
+  function write_optimal_cavities(output, name)
+    writedlm(name, output)
   end
 
 
