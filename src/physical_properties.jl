@@ -85,7 +85,7 @@ function matrix_to_file(path, matrix, colors=((1,1,0), (0,0,0)))
   return
 end
 
-function enlarge_image(path; resolution=nothing, resize_factor=nothing)
+function enlarge_image(path; resolution=nothing, resize_factor=nothing, plot_bool=false)
   RGB_m = load(path)
   n = size(RGB_m)[1]
   if typeof(resize_factor)==Nothing
@@ -108,7 +108,7 @@ function enlarge_image(path; resolution=nothing, resize_factor=nothing)
     ] .= RGB_m[i,j]
   end
   save("$(path[1:end-3])_resized.$(path[end-2 : end])", big_image)
-  println("done: $(path[1:end-4])_resized.$(path[end-2 : end])")
+  plot_bool && println("done: $(path[1:end-4])_resized.$(path[end-2 : end])")
   return
 end
 
