@@ -276,7 +276,7 @@ template_submatrix_list = three_column_domain_template(LSM_ratio1, LSM_ratio1, L
 three_column_matrix = generate_matrix(template_submatrix_list)
 ```
 
-### Material matrix visualization
+## Material matrix visualization
 
 A material matrix can be saved to a file with specified `path` using `matrix_to_file` function. For example
 
@@ -285,6 +285,25 @@ matrix_to_file("images/three_column_domain.png", three_column_matrix)
 ```
 
 !["Three column domain"](images/three_column_domain.png?raw=true )
+
+## Matrix compilation of subimages
+
+One can generate a lot of images using this package. There is also a tool to make a matrix of images based on row and column indexes:
+
+```julialang
+subimages_composition(folder_path = "data/set_of_images/", 
+                      row_numbers = collect(0.2 : 0.1 : 0.7), 
+                      col_numbers = collect(0.2 : 0.05 : 0.4), 
+                      template = "img_por#(row)_LSM#(col).png",
+)
+```
+
+where there parameters are
+
+- `template = "img_por#(row)_LSM#(col)"` where the sequence `#(row)` will be replaced by a number from the list `row_numbers` nad the same holds for `#(col)`. Note that it is not `$(col)` so that it will not colide with the internal julia string interpolation.
+- `background_color = (1,1,1)` RGB definition of background color. White is default.
+- `del_width = 10` number of pixels separating subimages
+- `out_filename = "compilation.png"` and output file is located in `folder_path`
 
 ## Acknowledgement
 

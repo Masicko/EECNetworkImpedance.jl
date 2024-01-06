@@ -30,6 +30,7 @@ export TI_YSZ_hi
 
 include("physical_properties.jl")
 export matrix_to_file, i_LSM, i_YSZ
+export subimages_composition
 
 # general part
 include("tau_estimation.jl")

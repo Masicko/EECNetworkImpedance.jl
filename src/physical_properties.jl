@@ -73,7 +73,7 @@ function file_to_matrix(path="src/geometry.png")
   return m
 end
 
-function matrix_to_file(path, matrix, colors=((1,1,0), (0,0,0)))
+function matrix_to_file(path, matrix, colors=((1.0,0.8,0), (0,0,0)))
   save(path, map(x -> if     x == i_pore
                    RGB(1, 1, 1)
                 elseif x == i_YSZ
@@ -109,6 +109,38 @@ function enlarge_image(path; resolution=nothing, resize_factor=nothing, plot_boo
   end
   save("$(path[1:end-3])_resized.$(path[end-2 : end])", big_image)
   plot_bool && println("done: $(path[1:end-4])_resized.$(path[end-2 : end])")
+  return
+end
+
+function name_from_template(template="first#(D)_second#(B)", dict=Dict("D"=>5, "B"=>6))
+  replace_array = ["#($key)" => "$(value)" for (key, value) in dict]
+  replace(template, replace_array...)
+end
+
+function subimages_composition(;folder_path, 
+                                row_numbers, col_numbers, template, 
+                                background_color=(1,1,1), del_width=10, out_filename="compilation.png")
+  function file_xy(dict)
+    specific_path = name_from_template(template, dict)
+    load("$(folder_path)/$(specific_path)")
+  end
+  
+  M = length(row_numbers)
+  N = length(col_numbers)
+  
+  first_file = file_xy(Dict("row"=>row_numbers[1], "col"=>col_numbers[1]))
+  m,n = size(first_file)
+
+  big_image = Array{RGB}(undef, (M*m + (M-1)*del_width, N*n + (N-1)*del_width))
+  big_image[1:end, 1:end] .= RGB(background_color...)
+
+  for (x_idx, x) in enumerate(row_numbers), (y_idx, y) in enumerate(col_numbers)
+    big_image[
+      (m + del_width)*(x_idx - 1) + 1 : (m + del_width)*(x_idx - 1) + m,
+      (n + del_width)*(y_idx - 1) + 1 : (n + del_width)*(y_idx - 1) + n,
+    ] .= file_xy(Dict("row"=>x, "col"=>y))
+  end
+  save("$(folder_path)/$(out_filename)", big_image)
   return
 end
 
