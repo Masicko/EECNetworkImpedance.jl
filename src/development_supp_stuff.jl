@@ -15,6 +15,13 @@ begin
   ID_list = collect(1:11)
   #ID_reduced_list = [1,2,3,4,5,7,8,9,10,11]
 
+  ###### cavitance data
+  data_cavitance = [ 0.55 0.03962; 0.6 0.21661; 0.62 0.37075; 0.68 0.48116; 0.75 0.83665]
+  lin_model(x, p) = x*p[1] + p[2]
+  p_minimizer = [3.8497404998111975, -2.0749140330454985]
+  p_cav(por) = min(max(lin_model(por, p_minimizer), 0.0), 1.0)
+
+
   # ID \ TEMP [800, 750, 700, 650, 600]
   data_conductivity = [
     286.14        205.52        150.50        124.49        107.75
@@ -81,7 +88,7 @@ begin
 
   function get_res_matrix(ID_list, prestring="DAN_DAN_2D_srovnani_id_", add_prms=[])
     res = []
-    input_arr = ["porosity", "LSM_ratio"]
+    input_arr = {Any}["porosity", "LSM_ratio"]
     push!(input_arr, add_prms)
     for row in ID_list       
       gdf = EECNetworkImpedance.show_plots(                      
