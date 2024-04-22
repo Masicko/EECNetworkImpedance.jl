@@ -52,6 +52,7 @@ export generate_matrix
 export three_column_domain_template
 export three_column_domain_matrix
 export chess_matrix
+export izolated_material_ratio, characterize_material_izolation
 
 # macro stuff consisting of par study, evaluate results, ploting, cluster operations
 

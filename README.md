@@ -228,6 +228,29 @@ pseudo_homogenous_matrix = generate_matrix(dimensions, porosity, LSM_ratio,
                           )
 ```
 
+### Inspecting domain properties
+Voxels in domain can be marked by a number, which will specify its material connectivity character. In particular,
+
+ - 0 - pore
+ - 1 - izolated material (not connected to electrodes)
+ - 2 - material connected to left electrode
+ - 3 - material connected to right electrode
+ - 4 - material connected to both electrodes (only this voxels can participate on electric current flow)
+
+ This investigation is dome by function 
+ 
+ ```julialang
+characterize_material_izolation(material_matrix)
+ ```
+
+ which returns matrix labeled as described above. In order to compute ratio of izolated material, there is a function
+
+```julialang
+izolated_material_ratio(material_matrix, wanted_ids = [1,2,3])
+```
+ 
+ which return the ratio of "wanted_material_points / all_material_points". Defaut value is `wanted_ids = [1]` for strongly izolated voxels.
+
 ### Structure using multiple submatrices
 For more complicated domains composed of several different homogenous subdomains, there is a possibility to construct appropriate matrix. Suppose we want to construct *m* x *n* matrix consisting of 2 different submatrices. First, a list of submatrices must be created such that one submatrix is represented by its *location* (left upper corner and right lower corner) in the resulting matrix and *porosity* and *LSM_ratio*. 
 

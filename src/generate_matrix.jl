@@ -212,10 +212,161 @@ function search_dirs(domain::Array{T} where T<: Integer)
   end
 end
 
+function prepare_aux_matrix(domain)
+  if length(size(domain)) == 2
+    dims = 2
+  else
+    dims = 3
+  end  
+  
+  if dims == 2
+    aux_matrix = Matrix{Integer}(undef, size(domain) .+ (2,2))
+    aux_matrix .= 1 
+    aux_matrix[:, end] .= 0
+    aux_matrix[:, 1] .= 0
+    #
+    aux_matrix[1, :] .= 0
+    aux_matrix[end, :] .= 0
+    
+    search_dirs = [(1,0), (-1,0), (0, 1), (0, -1)]
+  end
+  
+  if dims == 3
+    aux_matrix = Array{Integer}(undef, size(domain) .+ (2,2,2))
+  
+    aux_matrix .= 1 
+    aux_matrix[:, end, :] .= 0
+    
+    aux_matrix[:, 1, :] .= 0
+    #
+    aux_matrix[1, :, :] .= 0
+    aux_matrix[end, :, :] .= 0
+    #
+    aux_matrix[:, :, 1] .= 0
+    aux_matrix[:, :, end] .= 0
+    
+    search_dirs = [(1,0,0), (-1,0,0), (0, 1,0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+  end
+  return aux_matrix
+end
+
+function start_point(col, dims, gen_row)
+  res = []
+  push!(res, gen_row[1] + 1)
+  push!(res, col)
+  if dims == 3
+      push!(res, gen_row[2] + 1)
+  end
+    
+  return tuple(res...)
+end
 
 
+function spread_number!(aux_matrix, domain, num; from_side = "left")
+  if length(size(domain)) == 2
+    dims = 2
+    generalized_rows = [(row, layer) for row in 1:size(domain)[1], layer in 1:1]
+  else
+    dims = 3
+    generalized_rows = [(row, layer) for row in 1:size(domain)[1], layer in 1:size(domain)[3]]
+  end
+  start_col = (from_side == "left" ? 2 : size(domain)[2]+1)
+  
+  for generalized_row in generalized_rows
+    list_to_process = [start_point(start_col, dims, generalized_row)]
+    
+    while length(list_to_process) > 0
+      aux_coors = list_to_process[end]
+      deleteat!(list_to_process, length(list_to_process))
+      
+      if (aux_matrix[aux_coors...] == 1)
+        if (domain[(aux_coors .- 1)...] in i_material_list)          
+          aux_matrix[aux_coors...] = num         
+          for dir in search_dirs(domain)
+            push!(list_to_process, aux_coors .+ dir)
+          end
+        else
+          aux_matrix[aux_coors...] = 0
+        end
+      end
+    end
+  end
+end
 
-function check_material_connection(domain::Array{T} where T <: Integer; return_alone_percentage=false)
+function characterize_material_izolation(domain::Array{T} where T <: Integer)
+  # 0 = pore
+  # 1 = izolated material
+  # 2 = connected to left only
+  # 3 = connected to right only
+  # 4 = connected to both
+  
+  L_connected_sign = 4 
+  L_matrix = prepare_aux_matrix(domain)
+  spread_number!(L_matrix, domain, L_connected_sign, from_side="left")
+
+  R_connected_sign = 7
+  R_matrix = prepare_aux_matrix(domain)
+  spread_number!(R_matrix, domain, R_connected_sign, from_side="right")
+
+  sum_matrix = R_matrix .+ L_matrix
+
+  res_matrix = prepare_aux_matrix(domain)
+  dims = length(size(domain))
+  if dims == 2
+    res_matrix[2:end-1, 2:end-1] .= domain
+  else
+    res_matrix[2:end-1, 2:end-1, 2:end-1] .= domain
+  end
+
+  for i in 1:length(res_matrix[:])
+    pix = 0
+    if res_matrix[i] in i_material_list
+      if sum_matrix[i] <= 2
+        pix = 1
+      elseif sum_matrix[i] in [4,5]
+        pix = 2
+      elseif sum_matrix[i] in [7,8]
+        pix = 3
+      elseif sum_matrix[i] in [11]
+        pix = 4
+      end
+    end
+    res_matrix[i] = pix
+    
+  end
+ 
+  if dims == 2
+    return res_matrix[2:end-1, 2:end-1]
+  else
+    return res_matrix[2:end-1, 2:end-1, 2:end-1]
+  end
+end
+
+function test_izolated_material_ratio()
+  mmm = [0 0 0 2; 2 2 0 2; 2 0 0 2; 2 2 2 2;;; 2 2 0 2; 2 2 0 0; 2 2 0 2; 2 2 2 2;;; 2 2 0 2; 0 0 2 0; 2 0 2 2; 2 2 2 2;;; 2 2 2 2; 2 2 0 2; 2 2 0 2; 2 2 0 2]
+  return (
+    izolated_material_ratio(mmm, wanted_ids = [1]) == 0.16666666666666666 &&
+    izolated_material_ratio(mmm, wanted_ids = [4]) == 0.6666666666666666 &&
+    izolated_material_ratio(mmm, wanted_ids = [1,2,3]) == 0.3333333333333333
+  )
+end
+
+function izolated_material_ratio(domain::Array{T} where T<: Integer; wanted_ids=[1])
+  char_matrix = characterize_material_izolation(domain)
+  all_mat = 0
+  wanted_mat = 0
+  for i in 1:length(char_matrix[:])
+    if char_matrix[i] > 0
+      all_mat += 1
+      if char_matrix[i] in wanted_ids
+        wanted_mat += 1
+      end
+    end
+  end
+  return wanted_mat/all_mat
+end
+
+function check_material_connection(domain::Array{T} where T <: Integer)
   material_sign = 8
   end_sign = 6
   
@@ -315,29 +466,7 @@ function check_material_connection(domain::Array{T} where T <: Integer; return_a
       
     end    
   end
-  
-  
-  if return_alone_percentage == true
-    if dims == 2
-      sub_aux_matrix = aux_matrix[2:end-1, 2:end-1]
-    elseif dims == 3
-      sub_aux_matrix = aux_matrix[2:end-1, 2:end-1, 2:end-1]
-    end
-    #
-    material_pixels = 0
-    alone_pixels = 0
-    for i in 1:length(domain[:])      
-      if domain[i] in i_material_list
-        material_pixels += 1
-        if sub_aux_matrix[i] != material_sign
-          alone_pixels += 1    
-        end
-      end
-    end    
-    return alone_pixels/material_pixels
-  else
-    return is_connected
-  end
+  return is_connected
 end
 
 
