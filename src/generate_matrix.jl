@@ -716,6 +716,15 @@ end
 
 
 
+my_fu(x,a) = log(9, x*a+1);
+norm_f(x, a) = my_fu(x,a)/(2*my_fu(0.5,a))
+sym_log(x, a) = if x <= 0.5
+                return norm_f(x,a)
+            else
+                return 1-norm_f(1 -x,a)
+            end
+#my_range = collect(0 : 0.01 : 1.0)
+#plot(my_range, [sym_f(x,100) for x in my_range])
 
 
 
@@ -723,42 +732,45 @@ end
 
 
 
+function save_palete(p1, p2, file_name)
+  save(file_name, hcat(p1, p2))
+end
 
+function make_shaded_view(domain::Array{<:Integer, 3}, file_name; grad_depth=15, only_palette = false,
+                            g_s = (0.3, 0.3, 0.3), g_e = (0.0, 0.0, 0.0),
+                            y_s = (1.0, 0.8, 0.0), y_e = (0.5, 0.4, 0.0),
+                            pall_func = x->x
+                          )
 
+  gray_palete = [RGB(g_s .+ (g_e .- g_s) .*pall_func(x) ...) for x in range(0.0, 1.0, grad_depth)]
+  yellow_palete = [RGB(y_s .+ (y_e .- y_s) .*pall_func(x) ...) for x in range(0.0, 1.0, grad_depth)]
 
+  if only_palette
+    save_palete(gray_palete, yellow_palete, file_name)
+    return
+  end
 
-# function make_domain_connected(domain :: Array{T} where T <: Integer)
-#   if length(size(domain)) == 2
-#     dims = 2
-#   else
-#     dims = 3
-#   end  
-#   
-#   if dims == 2
-#     aux_matrix = Matrix{Integer}(undef, size(domain) .+ (2,2))
-#     aux_matrix = -1
-#     aux_matrix[2:end-1, 2:end-1] = domain
-#     
-#     search_dirs = [(1,0), (-1,0), (0, 1), (0, -1)]
-#     
-#     list_to_process = [(x,y) for x in 1:size(domain[1]), y in 1:size(domain[2])]
-#     while length(list_to_process) > 0
-#       act_idx = rand(1:length(list_to_process))
-#       act_indices = list_to_process[act_idx]
-#       
-#       if !check_point_connection(aux_matrix, aux_matrix[act_indices .+ 1])
-#         pore_to_swap = find_a_place_for_the_point(aux_matrix)
-#         
-#       end
-#     end
-#   end
-#   
-#   if dims == 3
-#     aux_matrix = Array{Integer}(undef, size(domain) .+ (2,2,2))
-#     aux_matrix .= -1
-#     aux_matrix[2:end-1, 2:end-1, 2:end-1] = domain
-#     
-#     search_dirs = [(1,0,0), (-1,0,0), (0, 1,0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
-#   end
-#   
-# end
+  res_img = Array{Union{RGB, Nothing}}(undef, size(domain[:, :, 1]))
+  res_img .= nothing
+  for layer in 1:size(domain)[3]
+    if layer > grad_depth
+      cor_layer = grad_depth
+    else
+      cor_layer = layer
+    end
+    for x in 1:size(domain)[1], y in 1:size(domain)[2]
+      if typeof(res_img[x,y]) == Nothing
+        if domain[x,y,layer] == i_YSZ
+          res_img[x,y] = gray_palete[cor_layer]
+        elseif domain[x,y,layer] == i_LSM
+          res_img[x,y] = yellow_palete[cor_layer]  
+        end
+      end
+    end
+  end
+
+  res_img = map(x -> (typeof(x) == Nothing ? RGB(1., 1., 1.) : x), res_img)
+
+  save(file_name, res_img)
+  return 
+end
