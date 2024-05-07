@@ -309,11 +309,29 @@ matrix_to_file("images/three_column_domain.png", three_column_matrix)
 
 !["Three column domain"](images/three_column_domain.png?raw=true )
 
+## Enlarge image
+
+The images are often very small (50 pixels). So for a better view, there is a utility to make bigger resolution.
+
+```julialang
+enlarge_image(path; resolution=nothing, resize_factor=nothing, print_bool=false)
+```
+
+Parameters are
+
+- `path`: path for the source image. The processed (enlarged) image is than saved to `"path_resized.XXX"`
+- `resolution = nothing` you can choose if you want to specify the target resolution as an integer (it assumes squared pictures)
+  - `resolution = 100` makes a resized picture with dimensions 100x100 pixels
+- `resize_factor = nothing` or you can choose resizing factor, such that
+  - `resize_factor = 3` means it will make 150x150 if the input image was 50x50
+- `print_bool = false` ... if `true`, a name of resized picture is printed to terminal
+
 ## In-depth surface visualization
 
 The function `make_shaded_view` takes a 3D structure `domain` and makes a 2D surface view such that it colors visible material pixels according to their depth in the structure. The basic usage is 
+
 ```julialang
-function make_shaded_view(domain, file_name, grad_depth=15, only_palette = false,
+make_shaded_view(domain, file_name, grad_depth=15, only_palette = false,
                             g_s = (0.3, 0.3, 0.3), g_e = (0.0, 0.0, 0.0),
                             y_s = (1.0, 0.8, 0.0), y_e = (0.5, 0.4, 0.0),
                             pall_func = x->x
