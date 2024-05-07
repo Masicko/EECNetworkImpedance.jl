@@ -332,8 +332,8 @@ The function `make_shaded_view` takes a 3D structure `domain` and makes a 2D sur
 
 ```julialang
 make_shaded_view(domain, file_name, grad_depth=15, only_palette = false,
-                            g_s = (0.3, 0.3, 0.3), g_e = (0.0, 0.0, 0.0),
-                            y_s = (1.0, 0.8, 0.0), y_e = (0.5, 0.4, 0.0),
+                            LSM_s = (0.3, 0.3, 0.3), LSM_e = (0.0, 0.0, 0.0),
+                            YSZ_s = (1.0, 0.8, 0.0), YSZ_e = (0.5, 0.4, 0.0),
                             pall_func = x->x
                           )
 ```
@@ -341,7 +341,7 @@ Parameters are
 
 - `grad_depth = 15` 
 - `only_palette = false`: if `true`, the output image is not the 2D surface view but only the palletes of colors
-- `g_s`, `g_e`: starting and ending RGB color for gray LSM palette. Similarly, `y_s` and `y_e` for yellow YSZ pallete.
+- `LSM_s`, `LSM_e`: starting and ending RGB color for gray LSM palette. Similarly, `YSZ_s` and `YSZ_e` for yellow YSZ pallete.
 - `pall_func = x -> x`: user can define a function how pallete color should progress from start to end. The `x -> x` means linear progress. The input parameter `x` goes from 0 to 1 and the output of the function is expected also in the interval `[0, 1]`. There is a predefined symmetrical logaritmic function 
     - ` = sym_log(x, a)` which has the value `0.5` for `x = 0.5` and behaves as a logarithm in interval `[0.0, 0.5]` and is point-wise symmetric around the midpoint `x,y = (0.5, 0.5)`. The parameter `a` governs the "logarithmic steepness" in the beginng. `a = 1` is almost linear, `a = 1000` is very steep
 

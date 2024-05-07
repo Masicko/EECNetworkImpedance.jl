@@ -732,21 +732,21 @@ sym_log(x, a) = if x <= 0.5
 
 
 
-function save_palete(p1, p2, file_name)
+function save_palette(p1, p2, file_name)
   save(file_name, hcat(p1, p2))
 end
 
 function make_shaded_view(domain::Array{<:Integer, 3}, file_name; grad_depth=15, only_palette = false,
-                            g_s = (0.3, 0.3, 0.3), g_e = (0.0, 0.0, 0.0),
-                            y_s = (1.0, 0.8, 0.0), y_e = (0.5, 0.4, 0.0),
+                            LSM_s = (0.3, 0.3, 0.3), LSM_e = (0.0, 0.0, 0.0),
+                            YSZ_s = (1.0, 0.8, 0.0), YSZ_e = (0.5, 0.4, 0.0),
                             pall_func = x->x
                           )
 
-  gray_palete = [RGB(g_s .+ (g_e .- g_s) .*pall_func(x) ...) for x in range(0.0, 1.0, grad_depth)]
-  yellow_palete = [RGB(y_s .+ (y_e .- y_s) .*pall_func(x) ...) for x in range(0.0, 1.0, grad_depth)]
+  LSM_palette = [RGB(LSM_s .+ (LSM_e .- LSM_s) .*pall_func(x) ...) for x in range(0.0, 1.0, grad_depth)]
+  YSZ_palette = [RGB(YSZ_s .+ (YSZ_e .- YSZ_s) .*pall_func(x) ...) for x in range(0.0, 1.0, grad_depth)]
 
   if only_palette
-    save_palete(gray_palete, yellow_palete, file_name)
+    save_palette(LSM_palette, YSZ_palette, file_name)
     return
   end
 
@@ -760,10 +760,10 @@ function make_shaded_view(domain::Array{<:Integer, 3}, file_name; grad_depth=15,
     end
     for x in 1:size(domain)[1], y in 1:size(domain)[2]
       if typeof(res_img[x,y]) == Nothing
-        if domain[x,y,layer] == i_YSZ
-          res_img[x,y] = gray_palete[cor_layer]
-        elseif domain[x,y,layer] == i_LSM
-          res_img[x,y] = yellow_palete[cor_layer]  
+        if domain[x,y,layer] == i_LSM
+          res_img[x,y] = LSM_palette[cor_layer]
+        elseif domain[x,y,layer] == i_YSZ
+          res_img[x,y] = YSZ_palette[cor_layer]  
         end
       end
     end
