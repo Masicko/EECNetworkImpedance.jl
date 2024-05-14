@@ -235,15 +235,15 @@ Generated domain can be rotated by function
 rotate_matrix!(domain, step, axis)
 ```
 
-which rotates the imput domain (and changes it). There is a version (withoug the exclamation mark `!`) which do not change the original matrix and return new rotated matrix 
+which rotates the input domain (and changes it). There is a version (withoug the exclamation mark `!`) which does not change the original domain and returns the new rotated domain
 
 ```julialang
-rotate_matrix(domain, step, axis)
+new_domain = rotate_matrix(domain, step, axis)
 ```
 
 The parameters are
 - `step` specifing the number of simple rotations. 1 = 90°, 2 = 180°, 3 = 270°, 4 = 360°, 5 = 450°. And -1 = 90° backwards etc... 
-- `axis` from the set `["x", "y", "z"]` specifies the axis of rotation. Note, the current flows along `"y"` axis, therefore rotation aroud this axis do not change the output impedance.
+- `axis` from the set `["x", "y", "z"]` specifies the axis of rotation. Note, the current flows along `"y"` axis, therefore rotation aroud this axis does not change the output impedance.
 
 ### Inspecting domain properties
 Voxels in domain can be marked by a number, which will specify its material connectivity character. In particular,
@@ -361,7 +361,7 @@ Parameters are
 - `LSM_s`, `LSM_e`: starting and ending RGB color for gray LSM palette. Similarly, `YSZ_s` and `YSZ_e` for yellow YSZ pallete.
 - `pall_func = x -> x`: user can define a function how pallete color should progress from start to end. The `x -> x` means linear progress. The input parameter `x` goes from 0 to 1 and the output of the function is expected also in the interval `[0, 1]`. There is a predefined symmetrical logaritmic function 
     - ` = sym_log(x, a)` which has the value `0.5` for `x = 0.5` and behaves as a logarithm in interval `[0.0, 0.5]` and is point-wise symmetric around the midpoint `x,y = (0.5, 0.5)`. The parameter `a` governs the "logarithmic steepness" in the beginng. `a = 1` is almost linear, `a = 1000` is very steep
-- `side = 1`: defines, which side od the cube domain is inspected. In particular, the coding is 1 = do not rotate, 2 = 90° along x, 3 = 180° along x, 4 = 270° along x, 5 = 90° along y, 6 = 90° along y
+- `side = 1`: defines, which side od the cube domain is inspected. In particular, the coding is 1 = do not rotate, 2 = 90° along x, 3 = 180° along x, 4 = 270° along x, 5 = 90° along y, 6 = -90° along y
 
 ## Matrix compilation of subimages
 
