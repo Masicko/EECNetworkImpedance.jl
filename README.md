@@ -228,6 +228,23 @@ pseudo_homogenous_matrix = generate_matrix(dimensions, porosity, LSM_ratio,
                           )
 ```
 
+### Rotation of domain
+Generated domain can be rotated by function
+
+```julialang
+rotate_matrix!(domain, step, axis)
+```
+
+which rotates the imput domain (and changes it). There is a version (withoug the exclamation mark `!`) which do not change the original matrix and return new rotated matrix 
+
+```julialang
+rotate_matrix(domain, step, axis)
+```
+
+The parameters are
+- `step` specifing the number of simple rotations. 1 = 90°, 2 = 180°, 3 = 270°, 4 = 360°, 5 = 450°. And -1 = 90° backwards etc... 
+- `axis` from the set `["x", "y", "z"]` specifies the axis of rotation. Note, the current flows along `"y"` axis, therefore rotation aroud this axis do not change the output impedance.
+
 ### Inspecting domain properties
 Voxels in domain can be marked by a number, which will specify its material connectivity character. In particular,
 
@@ -331,7 +348,7 @@ Parameters are
 The function `make_shaded_view` takes a 3D structure `domain` and makes a 2D surface view such that it colors visible material pixels according to their depth in the structure. The basic usage is 
 
 ```julialang
-make_shaded_view(domain, file_name, grad_depth=15, only_palette = false,
+make_shaded_view(domain, file_name, grad_depth=15, side=1, only_palette = false,
                             LSM_s = (0.3, 0.3, 0.3), LSM_e = (0.0, 0.0, 0.0),
                             YSZ_s = (1.0, 0.8, 0.0), YSZ_e = (0.5, 0.4, 0.0),
                             pall_func = x->x
@@ -344,6 +361,7 @@ Parameters are
 - `LSM_s`, `LSM_e`: starting and ending RGB color for gray LSM palette. Similarly, `YSZ_s` and `YSZ_e` for yellow YSZ pallete.
 - `pall_func = x -> x`: user can define a function how pallete color should progress from start to end. The `x -> x` means linear progress. The input parameter `x` goes from 0 to 1 and the output of the function is expected also in the interval `[0, 1]`. There is a predefined symmetrical logaritmic function 
     - ` = sym_log(x, a)` which has the value `0.5` for `x = 0.5` and behaves as a logarithm in interval `[0.0, 0.5]` and is point-wise symmetric around the midpoint `x,y = (0.5, 0.5)`. The parameter `a` governs the "logarithmic steepness" in the beginng. `a = 1` is almost linear, `a = 1000` is very steep
+- `side = 1`: defines, which side od the cube domain is inspected. In particular, the coding is 1 = do not rotate, 2 = 90° along x, 3 = 180° along x, 4 = 270° along x, 5 = 90° along y, 6 = 90° along y
 
 ## Matrix compilation of subimages
 

@@ -739,8 +739,18 @@ end
 function make_shaded_view(domain::Array{<:Integer, 3}, file_name; grad_depth=15, only_palette = false,
                             LSM_s = (0.3, 0.3, 0.3), LSM_e = (0.0, 0.0, 0.0),
                             YSZ_s = (1.0, 0.8, 0.0), YSZ_e = (0.5, 0.4, 0.0),
-                            pall_func = x->x
+                            pall_func = x->x,
+                            side=1
                           )
+
+  if side in [1,2,3,4]
+    axis = "x"
+    step = side-1
+  elseif side in [5,6]
+    axis = "y"
+    step = (side == 5 ? 1 : -1)
+  end
+  domain = rotate_matrix(domain, step, axis)
 
   LSM_palette = [RGB(LSM_s .+ (LSM_e .- LSM_s) .*pall_func(x) ...) for x in range(0.0, 1.0, grad_depth)]
   YSZ_palette = [RGB(YSZ_s .+ (YSZ_e .- YSZ_s) .*pall_func(x) ...) for x in range(0.0, 1.0, grad_depth)]
@@ -774,3 +784,72 @@ function make_shaded_view(domain::Array{<:Integer, 3}, file_name; grad_depth=15,
   save(file_name, res_img)
   return 
 end
+
+
+
+
+function rotate_2D(M, step=1)
+  m,n = size(M)
+  if m != n
+      println("ERROR: matrix dimensions $((m,n)) are not equal")
+      return throw(Exception)
+  end
+  if m <= 0
+      println("WARNING: rotating empty matrix")
+      return deepcopy(M)
+  end
+  res = Array{typeof(M[1])}(undef, size(M)...)
+  
+  step = mod(step, 4)
+  if step == 0
+      return deepcopy(M)
+  end
+  
+  n = size(M)[1]
+  for i in 1:n
+      if step==1
+          res[i, :] .= M[end:-1:1, i]
+      elseif step==2
+          res[i, :] .= M[n-i+1, end:-1:1]
+      elseif step==3
+          res[i, :] .= M[:, n-i+1]
+      end
+  end
+  res
+end
+
+
+function rotate_matrix!(A, step, axis)
+  if length(size(A))==2
+    return rotate_2D(A, step)
+  elseif length(size(A))!=3
+    println("ERROR: matrix is neither 3D nor 2D")
+    return throw(Exception)
+  end
+
+
+  if axis=="x"
+    for layer in 1:size(A)[3]
+      A[layer, :, :] .= rotate_2D(A[layer, :, :], step)
+    end
+  elseif axis=="y"
+    for layer in 1:size(A)[3]
+      A[:, layer, :] .= rotate_2D(A[:, layer, :], step)
+    end
+  elseif axis=="z"
+    for layer in 1:size(A)[3]
+        A[:, :, layer] .= rotate_2D(A[:, :, layer], step)
+    end
+  else  
+    println("ERROR: wrong axis $(axis) specification")
+    throw(Exception)
+  end
+end
+
+
+function rotate_matrix(A, step, axis)
+  aux = deepcopy(A)
+  rotate_matrix!(aux, step, axis)
+  return aux
+end
+

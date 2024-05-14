@@ -55,6 +55,7 @@ export chess_matrix
 export izolated_material_ratio, characterize_material_izolation
 export make_shaded_view, sym_log
 export enlarge_image
+export rotate_matrix, rotate_matrix!
 
 # macro stuff consisting of par study, evaluate results, ploting, cluster operations
 
