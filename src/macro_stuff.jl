@@ -425,26 +425,34 @@ function par_study(
       R_el_mat = i_LSM
     end
 
-    etime = @elapsed R, R_pol, C_pol = convert.(Float64,
-      image_to_EIS(
-                    local_par_study_prms["matrix_template"](local_par_study_prms),
-                    local_parameters,
-                    #
-                    f_list=f_list,
-                    tau=tau,
-                    verbose=verbose,
-                    return_R_RC=true, 
-                    TPE_warning=false,                      
-                    pyplot=false,
-                    L_el_mat=L_el_mat,
-                    R_el_mat=R_el_mat,
-      )
-    )
+    etime = @elapsed begin 
+        mat = local_par_study_prms["matrix_template"](local_par_study_prms)
+        if haskey(local_par_study_prms, "compute_tortuosity")
+          @show mat
+          tor = EECNetworkImpedance.matrix_tortuosity(mat)
+        end
+        R, R_pol, C_pol = convert.(Float64,
+          image_to_EIS(
+                        mat,
+                        local_parameters,
+                        #
+                        f_list=f_list,
+                        tau=tau,
+                        verbose=verbose,
+                        return_R_RC=true, 
+                        TPE_warning=false,                      
+                        pyplot=false,
+                        L_el_mat=L_el_mat,
+                        R_el_mat=R_el_mat,
+          )
+        )
+      end
     
     append!(output_data_frame, 
       merge(
         local_par_study_prms,
-        Dict("R" => R, "R_pol" => R_pol, "C_pol" => C_pol, "etime" => etime)
+        Dict("R" => R, "R_pol" => R_pol, "C_pol" => C_pol, "etime" => etime),
+        haskey(local_par_study_prms, "compute_tortuosity") ? Dict("tor" => tor) : Dict()
       )
     )  
   end

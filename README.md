@@ -168,6 +168,7 @@ Advanced keyword parameters are
   - if `= true` : the system is solved by iterative solver using Biconjugate gradient stabilized method with using Crout version of incomplete LU decomposition as a preconditioner.
 - `fill_in_ratio = 12`: defines expected fill during the incomplete LU desomposition. It is a ratio of non-zero element count of aproximation of `L` matrix with respect to non-zero element count of original `A` matrix of the (sparse) linear system. Bigger `fill_in_ratio` means more realiable convergence of iterative solver but it requires more RAM space, which is the limiting factor for large systems (e.g. $10^6$ voxels and above).
 - `tau = "auto"`: a drop criterion parameter in incomplete LU process. It is a absolute (not relative) treshold and elements of size under this treshold are forgotten. If `"auto"`, an adaptive process is run to estimate a feasible value for `tau` for which the defined `fill_in_ratio` is achieved.
+- `compute_tortuosity = true` means that tortuosity of the domain will be computed and stored in the output in the column `tor`.
 
 #### Lower level API 
 A user can directly access the computational core using function `material_matrix_to_impedance()` which accepts arguments these non-keyword arguments

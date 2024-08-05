@@ -853,3 +853,64 @@ function rotate_matrix(A, step, axis)
   return aux
 end
 
+
+
+function search_wide(domain; starting_point, feasible_idxs=[], blocking_idxs=[])
+  boundary_number = -1
+  inner_number = typemax(Int)
+
+  aux_domain = EECNetworkImpedance.aux_domain(domain, inner_number=inner_number, boundary_number=boundary_number)
+  # podivam se na cislo ve fronte a pridam sousedni souradnice a uz jim rovnou napisu cisla
+  
+  starting_idx = 1
+  list_to_process = [starting_point .+ 1]
+  aux_domain[(starting_point .+ 1)...] = 1
+  
+  ending_aux_coord = nothing
+
+  while starting_idx <= length(list_to_process)
+    aux_coors = list_to_process[starting_idx]
+    act_num = aux_domain[(aux_coors)...]
+  
+    
+         
+    for dir in search_dirs(domain)
+      new_aux_coors = aux_coors .+ dir
+      if new_aux_coors[2] == size(aux_domain)[2]
+        ending_aux_coord = aux_coors
+        break
+      end
+
+      if (aux_domain[new_aux_coors...] != boundary_number) &&
+            (aux_domain[new_aux_coors...] > act_num +1) &&
+            (domain[(new_aux_coors .- 1)...] in i_material_list)
+        push!(list_to_process, new_aux_coors)
+        aux_domain[new_aux_coors...] = act_num + 1
+      end     
+    end
+
+    if typeof(ending_aux_coord) != Nothing
+      break
+    end
+    starting_idx += 1    
+  end
+  
+  
+  #@show ending_aux_coord, aux_domain[ending_aux_coord...]
+  if typeof(ending_aux_coord) == Nothing
+    return aux_domain, 0
+  else
+    return aux_domain, aux_domain[ending_aux_coord...]
+  end
+end
+
+function matrix_tortuosity(domain)
+  paths = []
+  
+  for x in 1:size(domain)[1], z in 1:(  length(size(domain)) == 3 ? size(domain)[3] : 1)
+      ad, p = EECNetworkImpedance.search_wide(domain; starting_point = length(size(domain)) == 3 ? [x,1,z] : [x,1])
+      p > 0 ? push!(paths, p) : Nothing
+  end
+  return mean(paths)/size(domain)[2]
+end
+
